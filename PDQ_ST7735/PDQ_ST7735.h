@@ -44,6 +44,10 @@ as well as Adafruit raw 1.8" TFT display
 // for having some nice LCD modules and all kinds of other great parts too).
 // Consider giving them your support if possible!
 
+// Update from Christophe Persoz on 18/01/18
+// Use of transactional SPI for maximum HW SPI compatibility
+// declare #define ST7735_SAVE_SPCR 1 to activate it inside PDQ_ST7735_config.h
+
 #if !defined(_PDQ_ST7735H_)
 #define _PDQ_ST7735H_
 
@@ -67,6 +71,8 @@ as well as Adafruit raw 1.8" TFT display
 
 #define INLINE		inline
 #define INLINE_OPT	__attribute__((always_inline))
+
+SPISettings ST7735SPI(16000000, MSBFIRST, SPI_MODE0);
 
 // Color definitions
 enum
@@ -192,6 +198,7 @@ class PDQ_ST7735 : public PDQ_GFX<PDQ_ST7735>
 	static inline void spi_begin() __attribute__((always_inline))
 	{
 #if ST7735_SAVE_SPCR
+		SPI.beginTransaction(ST7735SPI);
 		swapValue(save_SPCR, SPCR);	// swap initial/current SPCR settings
 #endif
 		FastPin<ST7735_CS_PIN>::lo();		// CS <= LOW (selected)
@@ -204,6 +211,7 @@ class PDQ_ST7735 : public PDQ_GFX<PDQ_ST7735>
 		FastPin<ST7735_CS_PIN>::hi();		// CS <= HIGH (deselected)
 #if ST7735_SAVE_SPCR
 		swapValue(SPCR, save_SPCR);	// swap current/initial SPCR settings
+		SPI.endTransaction();
 #endif
 	}
 
